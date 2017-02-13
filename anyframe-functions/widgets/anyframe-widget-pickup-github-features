@@ -1,11 +1,11 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
-local header="pick merge-commit to ${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-b: github)"
+local header="pick merge-commit to ${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-x: github)"
 
 local out=$(\
   anyframe-source-github-features \
     | fzf --header="${header}" \
           --bind="${FZF_PREVIEW_KEYBIND}" \
-          --expect="ctrl-t,ctrl-v,ctrl-b" \
+          --expect="ctrl-t,ctrl-v,ctrl-x" \
           --preview="preview-git-merge-commit {1}")
 
 local key=$(head -1 <<< "$out")
@@ -22,7 +22,7 @@ if test "$commit"; then
   ctrl-t)
     preview-git-merge-commit "$commit" | less
     ;;
-  ctrl-b)
+  ctrl-x)
     local giturl=$(git remote get-url origin)
     giturl=${giturl/git\@github\.com\:/https://github.com/}
     giturl=${giturl%\.git}

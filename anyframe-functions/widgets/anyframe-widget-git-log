@@ -1,11 +1,11 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
-local header="$branch (ctrl-t: show, ctrl-v: insert, ctrl-b: github)"
+local header="$branch (ctrl-t: show, ctrl-v: insert, ctrl-x: github)"
 
 local out=$(\
   anyframe-source-git-commit-log $branch \
     | fzf --header="$header" \
           --bind="${FZF_PREVIEW_KEYBIND}" \
-          --expect="ctrl-t,ctrl-v,ctrl-b" \
+          --expect="ctrl-t,ctrl-v,ctrl-x" \
           --preview='git show --color {1}')
 
 local key=$(head -1 <<< "$out")
@@ -21,7 +21,7 @@ if test $commit; then
   ctrl-t)
     git show --color $commit
     ;;
-  ctrl-b)
+  ctrl-x)
     local giturl=$(git remote get-url origin)
     giturl=${giturl/git\@github\.com\:/https://github.com/}
     giturl=${giturl%\.git}
