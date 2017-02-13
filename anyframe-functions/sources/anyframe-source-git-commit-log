@@ -1,0 +1,32 @@
+local option OPTARG OPTIND
+local base_branch
+
+while getopts ':' option; do
+  case $option in
+  *)
+    echo "$0: invalid option -- $OPTARG" 1>&2
+    return 1
+    ;;
+  esac
+done
+
+shift $(expr $OPTIND - 1)
+
+local branch=$1
+
+if echo $branch | grep "\(feature\|bugfix\|release\)/" > /dev/null; then
+  base_branch="develop"
+elif echo $branch | grep 'hotfix/' > /dev/null; then
+  base_branch="master"
+else
+fi
+
+if test $base_branch; then
+  git log --oneline $base_branch..HEAD
+else
+  git log --oneline
+fi
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

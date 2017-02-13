@@ -1,0 +1,40 @@
+local branch="$(git rev-parse --abbrev-ref HEAD)"
+local header="pick merge-commit to ${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-b: github)"
+
+local out=$(\
+  anyframe-source-github-features \
+    | fzf --header="${header}" \
+          --bind="${FZF_PREVIEW_KEYBIND}" \
+          --expect="ctrl-t,ctrl-v,ctrl-b" \
+          --preview="preview-git-merge-commit {1}")
+
+local key=$(head -1 <<< "$out")
+local oneline=$(head -2 <<< "$out" | tail -1)
+
+local commit=$(echo $oneline | awk '{print $1}')
+local issue=$(echo $oneline | awk '{print substr($5,2)}')
+
+if test "$commit"; then
+  case "$key" in
+  ctrl-v)
+    echo $commit | anyframe-action-insert
+    ;;
+  ctrl-t)
+    preview-git-merge-commit "$commit" | less
+    ;;
+  ctrl-b)
+    local giturl=$(git remote get-url origin)
+    giturl=${giturl/git\@github\.com\:/https://github.com/}
+    giturl=${giturl%\.git}
+    open "${giturl}/pull/${issue}"
+    ;;
+  *)
+    git cherry-pick -m 1 $commit
+    ;;
+  esac
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

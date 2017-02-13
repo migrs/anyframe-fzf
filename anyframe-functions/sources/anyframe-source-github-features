@@ -1,0 +1,42 @@
+local branch="$(git rev-parse --abbrev-ref HEAD)"
+local base_branch
+
+if echo $branch | grep "\(feature\|bugfix\|release\)/" > /dev/null; then
+  base_branch="develop"
+elif echo $branch | grep 'hotfix/' > /dev/null; then
+  base_branch="master"
+else
+fi
+
+local tag="$(git tag --sort=-taggerdate | grep "^v" | grep -v "\." | head -n 1)"
+test $tag || exit
+
+local commits="$(git log --oneline --merges develop --not $branch)"
+local tag_dev="$(echo $commits | grep "Merge tag '$tag' into develop" | awk '{print $1}')"
+
+local merged1="$(git log --oneline $base_branch..)"    # Current
+local merged2="$(git log --oneline master --not $tag)" # Hotfix
+local merged3="$(git log --oneline $tag^2..$tag^)"     # Release Hotfix
+local merged4
+
+if test $tag_dev; then
+  merged4="$(git log --oneline $tag_dev^..$tag)"   # Release
+fi
+
+if test $base_branch; then
+  current_branch_commits="$(git log --oneline $base_branch..)"
+fi
+
+local merged="$(echo $merged1 && echo $merged2 && echo $merged3 && echo $merged4)"
+local merged_patten="$(echo $merged | awk 'BEGIN {ORS=" \\|"} /^[0-9a-f]{7,10} Merge pull request/ {print $5}' | sed 's/\\|$//g')"
+
+if test $merged_patten; then
+  echo $commits | grep -v 'Merge tag' | grep -v "$merged_patten"
+else
+  echo $commits | grep -v 'Merge tag'
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

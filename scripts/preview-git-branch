@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+local branch=$1
+local base_branch
+
+if echo $branch | grep "\(feature\|bugfix\|release\)/" > /dev/null; then
+  base_branch="develop"
+elif echo $branch | grep 'hotfix/' > /dev/null; then
+  base_branch="master"
+else
+fi
+
+echo "\033[1mBranch: ${branch}\033[m\n"
+
+if test $base_branch; then
+  #local gitlog="$(git --no-pager log --oneline --color $base_branch..$branch)"
+  local gitlog="$(git shortlog --format="%s %C(dim)%ar%Creset" $base_branch..$branch)"
+  if test $gitlog; then
+    echo "${gitlog}\n"
+    git --no-pager diff --stat --color $base_branch...$branch && echo
+    git --no-pager diff --color $base_branch...$branch
+  else
+    echo "No commits"
+  fi
+else
+  git log --color --graph --decorate --oneline -n 100 $branch
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

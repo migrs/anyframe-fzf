@@ -1,0 +1,28 @@
+local option OPTARG OPTIND
+
+while getopts ':' option; do
+  case $option in
+  *)
+    echo "$0: invalid option -- $OPTARG" 1>&2
+    return 1
+    ;;
+  esac
+done
+
+shift $(expr $OPTIND - 1)
+
+local commit=$1
+local actions=(
+  "tig show $commit" \
+  "git commit --fixup $commit" \
+  "git rebase -i $commit" \
+)
+
+for a in $actions; do
+  echo "${a}"
+done
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

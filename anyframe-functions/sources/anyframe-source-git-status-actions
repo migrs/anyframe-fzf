@@ -1,0 +1,16 @@
+local actions
+actions=( \
+  "add" \
+  "add -p" \
+  "rm" \
+  "reset HEAD" \
+  "checkout --")
+
+for a in $actions; do
+  echo "${a}"
+done
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

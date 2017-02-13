@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+
+local statusline=$1
+local file=$(echo $statusline | awk '{print $NF}')
+
+echo "\033[1m${statusline}\033[m"
+
+if test "$(echo "$statusline" | cut -c 1)" = "?"; then
+  echo
+  cat $file
+else
+  if test "$(echo "$statusline" | cut -c 1)" != " "; then
+    echo "\n\033[33;2mStaged\033[m\n"
+    git diff --cached --color $file
+  fi
+
+  if test "$(echo "$statusline" | cut -c 2)" != " "; then
+    echo "\n\033[33;2mUnstaged\033[m\n"
+    git diff --color $file
+  fi
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

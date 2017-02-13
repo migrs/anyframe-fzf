@@ -1,0 +1,41 @@
+local branch="$(git rev-parse --abbrev-ref HEAD)"
+local header="$branch (ctrl-t: show, ctrl-v: insert, ctrl-b: github)"
+
+local out=$(\
+  anyframe-source-git-commit-log $branch \
+    | fzf --header="$header" \
+          --bind="${FZF_PREVIEW_KEYBIND}" \
+          --expect="ctrl-t,ctrl-v,ctrl-b" \
+          --preview='git show --color {1}')
+
+local key=$(head -1 <<< "$out")
+local target=$(head -2 <<< "$out" | tail -1)
+
+local commit=$(echo $target | awk '{print $1}')
+
+if test $commit; then
+  case "$key" in
+  ctrl-v)
+    echo $commit | anyframe-action-insert
+    ;;
+  ctrl-t)
+    git show --color $commit
+    ;;
+  ctrl-b)
+    local giturl=$(git remote get-url origin)
+    giturl=${giturl/git\@github\.com\:/https://github.com/}
+    giturl=${giturl%\.git}
+    open "${giturl}/commit/${commit}"
+    ;;
+  *)
+    anyframe-source-git-commit-actions $commit \
+      | fzf --header="$commit" \
+      | anyframe-action-execute
+    ;;
+  esac
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+local commit=$1
+
+git show --color $commit
+echo
+git diff --color $commit^..$commit
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

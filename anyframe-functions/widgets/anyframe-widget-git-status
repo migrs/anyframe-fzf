@@ -1,0 +1,37 @@
+local branch="$(git rev-parse --abbrev-ref HEAD)"
+local header="${branch} (ctrl-t: preview, ctrl-v: insert)"
+local out=$(\
+  anyframe-source-git-status \
+    | fzf --header="$header" \
+          --bind="${FZF_PREVIEW_KEYBIND}" \
+          --expect="ctrl-t,ctrl-v" \
+          --preview='preview-git-status-diff {}')
+
+local key=$(head -1 <<< "$out")
+local target=$(head -2 <<< "$out" | tail -1)
+
+local file=$(echo $target | awk '{print $NF}')
+
+if test "${file}"; then
+  case "$key" in
+  ctrl-v)
+    echo $file | anyframe-action-insert
+    ;;
+  ctrl-t)
+    preview-git-status-diff "$target" | less
+    ;;
+  *)
+    local action=$(anyframe-source-git-status-actions \
+      | fzf --header="$target")
+
+    if test "${action}"; then
+      echo "${file}" | anyframe-action-execute git "${action}"
+    fi
+    ;;
+  esac
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

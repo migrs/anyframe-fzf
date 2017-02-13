@@ -1,0 +1,11 @@
+# anyframe-source-git-status
+# Args:
+#   Regulaer expressions for grep
+
+git status --porcelain |
+  grep "^$1"
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh
