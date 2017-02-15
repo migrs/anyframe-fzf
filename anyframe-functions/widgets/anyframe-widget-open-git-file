@@ -1,0 +1,10 @@
+if test "$LBUFFER"; then
+  git grep --color -C 2 -n "$LBUFFER" | anyframe-action-select-file
+else
+  git ls-files | anyframe-action-select-file
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

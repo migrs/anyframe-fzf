@@ -1,0 +1,11 @@
+anyframe-source-history \
+  | grep "^[mn]\?vim\? [~/]" \
+  | awk '{if(system("test -f " $NF)==0) print $NF}' \
+  | awk '!a[$0]++' \
+  | anyframe-action-select-file
+  #| grep "^[mn]\?vim\? [~/.[:alnum:]]" \
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

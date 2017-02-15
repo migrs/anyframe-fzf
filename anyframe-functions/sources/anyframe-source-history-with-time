@@ -1,0 +1,10 @@
+cat $HISTFILE \
+  | grep -n '^:' \
+  | sed 's/\([[:digit:]]\{1,\}\):: \([[:digit:]]\{10\}\):[[:digit:]];\(.*\)$/\1 \2 \3/' \
+  | gawk '{$2=strftime("%Y-%m-%d %H:%M", $2); print}' \
+  | tac
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

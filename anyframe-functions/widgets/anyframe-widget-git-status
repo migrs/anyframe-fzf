@@ -1,35 +1,51 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
-local header="${branch} (ctrl-t: preview, ctrl-v: insert)"
-local out=$(\
-  anyframe-source-git-status \
-    | fzf --header="$header" \
-          --bind="${FZF_PREVIEW_KEYBIND}" \
-          --expect="ctrl-t,ctrl-v" \
-          --preview='preview-git-status-diff {}')
 
-local key=$(head -1 <<< "$out")
-local target=$(head -2 <<< "$out" | tail -1)
+local out="$(anyframe-source-git-status \
+  | fzf --header="${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-s: menu)" \
+        --bind="${FZF_PREVIEW_KEYBIND}" \
+        --expect="ctrl-t,ctrl-v,ctrl-s,ctrl-x" \
+        --preview='preview-git-status-diff {}')"
 
-local file=$(echo $target | awk '{print $NF}')
+local key="$(head -1 <<< $out)"
+local lines="$(tail -n +2 <<< $out)"
+local line="$(head -1 <<< $lines)"
 
-if test "${file}"; then
-  case "$key" in
-  ctrl-v)
-    echo $file | anyframe-action-insert
-    ;;
-  ctrl-t)
-    preview-git-status-diff "$target" | less
-    ;;
-  *)
-    local action=$(anyframe-source-git-status-actions \
-      | fzf --header="$target")
+local file="$(awk '{print $NF}' <<< $line)"
+local -a args=(${(@f)"$(awk '{print $NF}' <<< $lines)"})
 
-    if test "${action}"; then
-      echo "${file}" | anyframe-action-execute git "${action}"
-    fi
-    ;;
-  esac
+zle reset-prompt
+
+if test -z "$file"; then
+  return 0
 fi
+
+case $key in
+ctrl-v)
+  anyframe-action-insert <<< $file
+  ;;
+ctrl-t)
+  preview-git-status-diff $line | less
+  ;;
+ctrl-s)
+  local action="$(anyframe-source-git-status-actions | fzf --header="${lines}")"
+
+  anyframe-action-execute git $action <<< $args
+  ;;
+ctrl-x)
+  if test $#lines -eq 1; then
+    if test "$(echo $line | cut -c 1)" = "M"; then
+      anyframe-action-execute " git reset HEAD" <<< $file
+    else
+      anyframe-action-execute " git add" <<< $file
+    fi
+  else
+    anyframe-action-execute " git add" <<< $args
+  fi
+  ;;
+*)
+  anyframe-action-execute vi <<< $file
+  ;;
+esac
 
 # Local Variables:
 # mode: Shell-Script

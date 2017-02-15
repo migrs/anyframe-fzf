@@ -1,0 +1,86 @@
+local option
+
+while getopts ':' option; do
+  case $option in
+  *)
+    echo "$0: invalid option -- $OPTARG" 1>&2
+    return 1
+    ;;
+  esac
+done
+
+shift $(expr $OPTIND - 1)
+
+local branch=$1
+
+local -a actions
+
+#actions+=($branch)
+
+case $branch in
+feature/*)
+  actions+=(
+    "git flow feature publish $branch" \
+    "git flow feature finish $branch" \
+    "tig develop..$branch" \
+    "git checkout $branch" \
+    "git branch -D $branch" \
+  )
+  ;;
+hotfix/*)
+  actions+=(
+    "git flow hotfix finish $branch" \
+    "tig master..$branch" \
+    "git checkout $branch" \
+    "git branch -D $branch" \
+  )
+  ;;
+release/*)
+  actions+=(
+    "git flow release finish $branch" \
+    "tig develop..$branch" \
+    "tig master..$branch" \
+    "git checkout $branch" \
+    "git branch -D $branch" \
+  )
+  ;;
+develop)
+  actions+=(
+    "tig master..$branch" \
+    "git checkout $branch" \
+  )
+  ;;
+master)
+  actions+=(
+    "tig $branch" \
+    "git checkout $branch" \
+  )
+  ;;
+remotes/*)
+  local remote="$(echo $branch | awk -F/ '{print $2}')"
+  local remote_branch="$(echo $branch | awk -F/$remote/ '{print $2}')"
+  actions+=(
+    "git push $remote :$remote_branch"
+    "tig $branch" \
+    "git checkout -t $branch" \
+  )
+  ;;
+*)
+  actions+=(
+    "git branch -D $branch" \
+    "tig $branch" \
+    "git checkout $branch" \
+  )
+  ;;
+esac
+
+#actions+=($branch)
+
+for a in $actions; do
+  echo "${a}"
+done
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+local file="$(sed -n 's/^\([^-:]\{1,\}\)[-:]\([[:digit:]]\{1,\}\)[-:].\{0,\}/\1/p' <<< $1)"
+
+if test "$(git ls-files HEAD -- ${file} 2> /dev/null)"; then
+  echo "\033[1m${file}\033[m"
+  git log -10 --format='%C(yellow)w%h%Creset %s %C(dim)%ar %C(blue)%an%Creset' --abbrev-commit HEAD -- "${file}"
+  echo
+fi
+
+echo "\033[4m${file}\033[m"
+
+if test $(echo "${file}" | grep "^\~"); then
+file="${HOME}$(echo "${file}" | sed -e "s/^\~//")"
+fi
+
+(highlight -O ansi $file || cat $file) 2> /dev/null | head -1000

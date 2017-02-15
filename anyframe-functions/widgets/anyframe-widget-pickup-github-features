@@ -1,38 +1,38 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
-local header="pick merge-commit to ${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-x: github)"
+local header=""
 
-local out=$(\
-  anyframe-source-github-features \
-    | fzf --header="${header}" \
-          --bind="${FZF_PREVIEW_KEYBIND}" \
-          --expect="ctrl-t,ctrl-v,ctrl-x" \
-          --preview="preview-git-merge-commit {1}")
+local out="$(anyframe-source-github-features \
+  | fzf --header="pick merge-commit to ${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-x: github)" \
+        --bind="${FZF_PREVIEW_KEYBIND}" \
+        --expect="ctrl-t,ctrl-v,ctrl-x" \
+        --preview="preview-git-merge-commit {1}")"
 
-local key=$(head -1 <<< "$out")
-local oneline=$(head -2 <<< "$out" | tail -1)
+local key="$(head -1 <<< $out)"
+local lines="$(tail -n +2 <<< $out)"
+local line="$(head -1 <<< $lines)"
 
-local commit=$(echo $oneline | awk '{print $1}')
-local issue=$(echo $oneline | awk '{print substr($5,2)}')
+local commit=$(awk '{print $1}' <<< $line)
+local issue=$(awk '{print substr($5,2)}' <<< $issue)
 
-if test "$commit"; then
-  case "$key" in
-  ctrl-v)
-    echo $commit | anyframe-action-insert
-    ;;
-  ctrl-t)
-    preview-git-merge-commit "$commit" | less
-    ;;
-  ctrl-x)
-    local giturl=$(git remote get-url origin)
-    giturl=${giturl/git\@github\.com\:/https://github.com/}
-    giturl=${giturl%\.git}
-    open "${giturl}/pull/${issue}"
-    ;;
-  *)
-    git cherry-pick -m 1 $commit
-    ;;
-  esac
-fi
+zle reset-prompt
+
+case $key in
+ctrl-v)
+  anyframe-action-insert <<< $commit
+  ;;
+ctrl-t)
+  preview-git-merge-commit $commit | less
+  ;;
+ctrl-x)
+  local giturl="$(git remote get-url origin)"
+  giturl=${giturl/git\@github\.com\:/https://github.com/}
+  giturl=${giturl%\.git}
+  anyframe-action-execute " open" <<< "${giturl}/pull/${issue}"
+  ;;
+*)
+  anyframe-action-execute " git cherry-pick -m 1" <<< $commit
+  ;;
+esac
 
 # Local Variables:
 # mode: Shell-Script

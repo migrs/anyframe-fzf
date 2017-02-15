@@ -1,0 +1,6 @@
+eval $FZF_DEFAULT_COMMAND
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

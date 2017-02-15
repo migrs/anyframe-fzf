@@ -1,0 +1,10 @@
+if test "$LBUFFER"; then
+  rg -n -C 1 --no-heading --no-ignore --hidden --glob '!.git/*' "$LBUFFER" | anyframe-action-select-file
+else
+  anyframe-source-list-file-all | anyframe-action-select-file
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

@@ -1,0 +1,34 @@
+local out="$(anyframe-source-history-with-time \
+  | fzf --query "$LBUFFER" \
+        --bind "${FZF_PREVIEW_KEYBIND}" \
+        --expect "ctrl-x,ctrl-v" \
+        --with-nth 2.. \
+        --nth 3..)"
+
+local key="$(head -1 <<< $out)"
+local lines="$(tail -n +2 <<< $out)"
+local line="$(head -1 <<< $lines)"
+#local -a lines=(${(@f)"$(tail -n +2 <<< $out)"})
+
+local hist="${(R)line#* * * }"
+#local hist=$(echo $lines[1] | awk '{for(i=4;i<NF;i++){printf("%s%s",$i,OFS=" ")}print $NF}')
+
+case $key in
+  ctrl-x)
+    local -a opts=(${(@f)"$(awk '{print $1}' <<< $lines | sed "s/\(.*\)/-e '\1d'/g")"})
+    local br='\\\\';
+    local del_command=" sed -i.bak ${opts} -e '/^:/!d' -e '/${br}$/d' ${HISTFILE} > /dev/null && fc -R $HISTFILE"
+    anyframe-action-execute <<< $del_command
+    ;;
+  ctrl-v)
+    anyframe-action-insert <<< $hist
+    ;;
+  *)
+    anyframe-action-execute <<< $hist
+    ;;
+esac
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

@@ -1,0 +1,36 @@
+local files="$(cat)"
+
+local out="$(echo $files \
+  | fzf --query "$LBUFFER" \
+        --preview="preview-file {1}" \
+        --bind="${FZF_PREVIEW_KEYBIND}" \
+        --expect="ctrl-v,ctrl-s")"
+
+local key="$(head -1 <<< $out)"
+local lines="$(tail -n +2 <<< $out)"
+local line="$(head -1 <<< $lines)"
+local file_n="$(sed 's/^\([^-:]\{1,\}\)[-:]\([[:digit:]]\{1,\}\)[-:].\{0,\}/\1 \2/' <<< $line)"
+local file="$(awk '{print $1}' <<< $file_n)"
+local n="$(awk '{print $2}' <<< $file_n)"
+
+zle backward-kill-line
+zle reset-prompt
+
+case $key in
+ctrl-v)
+  anyframe-action-insert <<< $file
+  ;;
+ctrl-s)
+  local action="$(anyframe-source-file-actions | fzf --header="$file")"
+
+  anyframe-action-execute $action <<< $file
+  ;;
+*)
+  anyframe-action-execute " vi +${n}" <<< $file
+  ;;
+esac
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

@@ -1,0 +1,14 @@
+local actions
+actions=( \
+  "rm" \
+  "mvim" \
+  "open")
+
+for a in $actions; do
+  echo "${a}"
+done
+
+# Local Variables:
+# mode: Shell-Script
+# End:
+# vim: ft=zsh

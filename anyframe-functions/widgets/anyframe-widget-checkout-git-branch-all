@@ -1,39 +1,37 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
-local header="${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-s: show action menu)"
 
-local out=$(\
-  anyframe-source-git-branch -a -n \
-    | fzf --header="${header}" \
-          --bind="${FZF_PREVIEW_KEYBIND}" \
-          --expect="ctrl-t,ctrl-v,ctrl-s" \
-          --preview="preview-git-branch {1}")
-          # --preview-window=right:hidden \
+local out="$(anyframe-source-git-branch -a -n \
+  | fzf --header="${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-s: show action menu)" \
+        --bind="${FZF_PREVIEW_KEYBIND}" \
+        --expect="ctrl-t,ctrl-v,ctrl-s" \
+        --preview="preview-git-branch {1}")"
 
-local key=$(head -1 <<< "$out")
-local branch=$(head -2 <<< "$out" | tail -1)
+local key="$(head -1 <<< $out)"
+local branches="$(tail -n +2 <<< $out)"
+local branch="$(head -1 <<< $branches)"
 
-if test "$branch"; then
-  case "$key" in
-  ctrl-v)
-    echo $branch | anyframe-action-insert
-    ;;
-  ctrl-t)
-    preview-git-branch "$branch" | less
-    ;;
-  ctrl-s)
-    anyframe-source-git-branch-actions "$branch" \
-      | fzf \
-      | anyframe-action-execute
-    ;;
-  *)
-    if echo "$branch" | grep '^remotes/'; then
-      git checkout -t "$branch"
-    else
-      git checkout "$branch"
-    fi
-    ;;
-  esac
-fi
+zle reset-prompt
+
+case $key in
+ctrl-v)
+  anyframe-action-insert <<< $branch
+  ;;
+ctrl-t)
+  preview-git-branch $branch | less
+  ;;
+ctrl-s)
+  anyframe-source-git-branch-actions $branch \
+    | fzf \
+    | anyframe-action-execute
+  ;;
+*)
+  if grep '^remotes/' <<< $branch; then
+    anyframe-action-execute " git checkout -t" <<< $branch
+  else
+    anyframe-action-execute " git checkout" <<< $branch
+  fi
+  ;;
+esac
 
 # Local Variables:
 # mode: Shell-Script
