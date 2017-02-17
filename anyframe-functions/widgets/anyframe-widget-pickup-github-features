@@ -14,8 +14,6 @@ local line="$(head -1 <<< $lines)"
 local commit=$(awk '{print $1}' <<< $line)
 local issue=$(awk '{print substr($5,2)}' <<< $issue)
 
-zle reset-prompt
-
 case $key in
 ctrl-v)
   anyframe-action-insert <<< $commit
@@ -33,6 +31,8 @@ ctrl-x)
   anyframe-action-execute " git cherry-pick -m 1" <<< $commit
   ;;
 esac
+
+zle reset-prompt
 
 # Local Variables:
 # mode: Shell-Script

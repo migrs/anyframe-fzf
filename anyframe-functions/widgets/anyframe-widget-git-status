@@ -13,9 +13,8 @@ local line="$(head -1 <<< $lines)"
 local file="$(awk '{print $NF}' <<< $line)"
 local -a args=(${(@f)"$(awk '{print $NF}' <<< $lines)"})
 
-zle reset-prompt
-
 if test -z "$file"; then
+  zle reset-prompt
   return 0
 fi
 
@@ -46,6 +45,8 @@ ctrl-x)
   anyframe-action-execute vi <<< $file
   ;;
 esac
+
+zle reset-prompt
 
 # Local Variables:
 # mode: Shell-Script

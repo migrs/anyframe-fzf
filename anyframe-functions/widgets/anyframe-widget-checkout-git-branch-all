@@ -1,16 +1,14 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
 
-local out="$(anyframe-source-git-branch -a -n \
+local out="$(anyframe-source-git-branch -a -n -v \
   | fzf --header="${branch} (ctrl-t: preview, ctrl-v: insert, ctrl-s: show action menu)" \
         --bind="${FZF_PREVIEW_KEYBIND}" \
         --expect="ctrl-t,ctrl-v,ctrl-s" \
         --preview="preview-git-branch {1}")"
 
 local key="$(head -1 <<< $out)"
-local branches="$(tail -n +2 <<< $out)"
+local branches="$(tail -n +2 <<< $out | awk '{print $1}')"
 local branch="$(head -1 <<< $branches)"
-
-zle reset-prompt
 
 case $key in
 ctrl-v)
@@ -28,10 +26,19 @@ ctrl-s)
   if grep '^remotes/' <<< $branch; then
     anyframe-action-execute " git checkout -t" <<< $branch
   else
-    anyframe-action-execute " git checkout" <<< $branch
+    local result="$(anyframe-action-execute " git checkout" <<< $branch 2>&1 >/dev/null)"
+
+    if grep '^fatal' <<< $result; then
+      local worktree="$(awk '{print $NF}' <<< $result | sed "s/'//g")"
+      anyframe-action-execute " cd --" <<< $worktree
+    else
+      anyframe-action-execute " git checkout" <<< $branch
+    fi
   fi
   ;;
 esac
+
+zle reset-prompt
 
 # Local Variables:
 # mode: Shell-Script

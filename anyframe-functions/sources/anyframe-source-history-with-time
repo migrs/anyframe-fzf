@@ -1,7 +1,8 @@
 cat $HISTFILE \
   | grep -n '^:' \
+  | decode_zsh_history \
   | sed 's/\([[:digit:]]\{1,\}\):: \([[:digit:]]\{10\}\):[[:digit:]];\(.*\)$/\1 \2 \3/' \
-  | gawk '{$2=strftime("%Y-%m-%d %H:%M", $2); print}' \
+  | gawk '{$2=strftime("\033[2m%Y-%m-%d %H:%M\033[m", $2); print}' \
   | tac
 
 # Local Variables:

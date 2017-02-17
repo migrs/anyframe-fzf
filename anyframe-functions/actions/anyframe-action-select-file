@@ -9,7 +9,8 @@ local out="$(echo $files \
 local key="$(head -1 <<< $out)"
 local lines="$(tail -n +2 <<< $out)"
 local line="$(head -1 <<< $lines)"
-local file_n="$(sed 's/^\([^-:]\{1,\}\)[-:]\([[:digit:]]\{1,\}\)[-:].\{0,\}/\1 \2/' <<< $line)"
+local files="$(sed -n 's/^\([^-:]\{1,\}\)[-:]\{0,1\}\([[:digit:]]\{1,\}\)\{0,1\}[-:]\{0,1\}.\{0,\}$/\1/p' <<< $lines)"
+local file_n="$(sed -n 's/^\([^-:]\{1,\}\)[-:]\{0,1\}\([[:digit:]]\{1,\}\)\{0,1\}[-:]\{0,1\}.\{0,\}$/\1 \2/p' <<< $line)"
 local file="$(awk '{print $1}' <<< $file_n)"
 local n="$(awk '{print $2}' <<< $file_n)"
 
@@ -26,7 +27,15 @@ ctrl-s)
   anyframe-action-execute $action <<< $file
   ;;
 *)
-  anyframe-action-execute " vi +${n}" <<< $file
+  if test $(echo $files | wc -l) -eq 1; then
+    if test -z $n; then
+      anyframe-action-execute " vi" <<< $file
+    else
+      anyframe-action-execute " vi +${n}" <<< $file
+    fi
+  else
+    anyframe-action-execute " vi -p" <<< $files
+  fi
   ;;
 esac
 

@@ -17,7 +17,7 @@ case $key in
   ctrl-x)
     local -a opts=(${(@f)"$(awk '{print $1}' <<< $lines | sed "s/\(.*\)/-e '\1d'/g")"})
     local br='\\\\';
-    local del_command=" sed -i.bak ${opts} -e '/^:/!d' -e '/${br}$/d' ${HISTFILE} > /dev/null && fc -R $HISTFILE"
+    local del_command=" LC_CTYPE=C sed -i.bak ${opts} -e '/^:/!d' -e '/${br}$/d' ${HISTFILE} > /dev/null && fc -R $HISTFILE"
     anyframe-action-execute <<< $del_command
     ;;
   ctrl-v)
@@ -27,6 +27,8 @@ case $key in
     anyframe-action-execute <<< $hist
     ;;
 esac
+
+zle reset-prompt
 
 # Local Variables:
 # mode: Shell-Script

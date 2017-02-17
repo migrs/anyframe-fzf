@@ -1,7 +1,7 @@
 local branch="$(git rev-parse --abbrev-ref HEAD)"
 
 #local out="$(anyframe-source-git-commit-log $branch \
-local out="$(git log --graph --decorate --oneline --color $branch \
+local out="$(git log --graph --decorate --oneline --color -300 $branch \
   | fzf --header="$branch (ctrl-t: show, ctrl-v: insert, ctrl-x: github)" \
         --bind="${FZF_PREVIEW_KEYBIND}" \
         --expect="ctrl-t,ctrl-v,ctrl-x" \
@@ -11,11 +11,10 @@ local key="$(head -1 <<< $out)"
 local lines="$(tail -n +2 <<< $out)"
 local line="$(head -1 <<< $lines)"
 
-local commit="$(sed -n 's/^[^a-f0-9]\{0,\}\([a-f0-9]\{7,10\}\).\{1,\}/\1/p' <<< $line)"
-
-zle reset-prompt
+local commit="$(sed -n 's/^[^a-f0-9]\{0,\}\([a-f0-9]\{7,10\}\).\{1,\}$/\1/p' <<< $line)"
 
 if test -z "$commit"; then
+  zle reset-prompt
   return 0
 fi
 
@@ -39,6 +38,8 @@ ctrl-x)
     | anyframe-action-execute
   ;;
 esac
+
+zle reset-prompt
 
 # Local Variables:
 # mode: Shell-Script

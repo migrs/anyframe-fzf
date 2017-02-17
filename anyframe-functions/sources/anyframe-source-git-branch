@@ -9,7 +9,7 @@ local include_current_branch="1"
 local option OPTARG OPTIND
 local git_option
 git_option=("--list")
-while getopts ':inar' option; do
+while getopts ':inarv' option; do
   case $option in
   i)
     include_current_branch="1"
@@ -24,7 +24,7 @@ while getopts ':inar' option; do
     git_option+=("-r")
     ;;
   v)
-    git_option+=("-v")
+    git_option+=("-vv")
     ;;
   *)
     echo "$0: invalid option -- $OPTARG" 1>&2
@@ -34,7 +34,7 @@ while getopts ':inar' option; do
 done
 shift $(expr $OPTIND - 1)
 
-git branch $git_option \
+git branch -vv --color $git_option \
 | {
   if [[ "$include_current_branch" == "1" ]]; then
     sed 's/^\*//'
